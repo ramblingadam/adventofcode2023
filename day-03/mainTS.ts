@@ -507,62 +507,209 @@ export const totalPartNumbers3 = (input: string) => {
 //   console.log(totalPartNumbers3(test[0]), test[1])
 // }
 
-// console.log(totalPartNumbers3(input))
+// console.log(totalPartNumbers3(input), 546312)
 // console.log(totalPartNumbers3(input2))
 
 ///// PART 2
 /*
 
-as we search for adjacent symbols:
-if the symbol is a * for a particular numBuilding session,
+as we search for adjacent symbols while bulding a num:
+set an array to hold all gears we encounter
+if the symbol is a * for a particular numBuilding session, get the row,col for the gear.
 
 
+when done building the part, look through the gears array for a gear with a matching loc: [row,col] property
+  if no matching gear, push new gearInfo object into gears array. init adj with the part
+  if matching gear found, push current part number into adj. 
 
+at the end, filter gears to only include those with adj.length === 2
+reduce the result. bing bang boom
 
 */
 
-type gearInfo = {
+type gearLoc = [number, number]
+
+// type gearInfo = {
+// loc: [number, number] // row, col
+// adj: number[] // list of adjacent parts
+// }
+
+class GearInfo {
   loc: [number, number] // row, col
-  adj: number //number of adjacent parts
+  adj: number[] // list of adjacent parts
+  constructor(loc: [number, number], part: number) {
+    this.loc = loc
+    this.adj = [part]
+  }
+}
+
+export const isGear = (char: string) => {
+  return char === '*'
 }
 
 export const totalPartNumbersAndGearRatios = (input: string) => {
-  const gears: gearInfo[] = []
+  // const isSymbolAdjacent = (row: number, col: number): boolean => {
+  //   const prevRow = lines[row - 1]
+  //   const currRow = lines[row]
+  //   const nextRow = lines[row + 1]
 
-  const isSymbolAdjacent = (row: number, col: number): boolean => {
+  //   if (isSymbol(currRow[col - 1]) || isSymbol(currRow[col + 1])) return true
+  //   if (prevRow) {
+  //     const aboveLeft = prevRow[col - 1]
+  //     const above = prevRow[col]
+  //     const aboveRight = prevRow[col + 1]
+  //     if (
+  //       isSymbol(prevRow[col - 1]) ||
+  //       isSymbol(prevRow[col]) ||
+  //       isSymbol(prevRow[col + 1])
+  //     )
+  //       return true
+  //   }
+  //   if (nextRow) {
+  //     if (
+  //       isSymbol(nextRow[col - 1]) ||
+  //       isSymbol(nextRow[col]) ||
+  //       isSymbol(nextRow[col + 1])
+  //     )
+  //       return true
+  //   }
+  //   return false
+  // }
+
+  // type surroundingCharInfo = {
+  //   char: string
+  //   pos: [number, number]
+  // }
+
+  class surroundingCharInfo {
+    char: string
+    pos: [number, number]
+    constructor(row: number, col: number) {
+      this.char = lines[row][col]
+      this.pos = [row, col]
+    }
+  }
+
+  //// If gear adjacent, returns [row, col] of gear. Otherwise, returns false.
+  const isGearAdjacent = (
+    row: number,
+    col: number
+  ): boolean | [number, number] => {
     const prevRow = lines[row - 1]
     const currRow = lines[row]
     const nextRow = lines[row + 1]
 
-    if (isSymbol(currRow[col - 1]) || isSymbol(currRow[col + 1])) return true
+    const surroundingChars: Record<string, null | surroundingCharInfo> = {
+      aboveLeft: null,
+      above: null,
+      aboveRight: null,
+      left: null,
+      right: null,
+      belowLeft: null,
+      below: null,
+      belowRight: null,
+    }
+
     if (prevRow) {
-      if (
-        isSymbol(prevRow[col - 1]) ||
-        isSymbol(prevRow[col]) ||
-        isSymbol(prevRow[col + 1])
-      )
-        return true
+      surroundingChars['aboveLeft'] = new surroundingCharInfo(row - 1, col - 1)
+      surroundingChars['above'] = new surroundingCharInfo(row - 1, col)
+      surroundingChars['aboveRight'] = new surroundingCharInfo(row - 1, col + 1)
     }
+
+    surroundingChars['left'] = new surroundingCharInfo(row, col - 1)
+    surroundingChars['right'] = new surroundingCharInfo(row, col + 1)
+
     if (nextRow) {
-      if (
-        isSymbol(nextRow[col - 1]) ||
-        isSymbol(nextRow[col]) ||
-        isSymbol(nextRow[col + 1])
-      )
-        return true
+      surroundingChars['belowLeft'] = new surroundingCharInfo(row + 1, col - 1)
+      surroundingChars['below'] = new surroundingCharInfo(row + 1, col)
+      surroundingChars['belowRight'] = new surroundingCharInfo(row + 1, col + 1)
     }
+
+    console.log(surroundingChars)
+
+    for (let surroundingChar in surroundingChars) {
+      const char = surroundingChars[surroundingChar]?.char
+      const pos = surroundingChars[surroundingChar]?.pos
+      console.log('char:', char, 'pos:', pos)
+      if (char && char === '*') {
+        console.log('doing stuff with a gear')
+        let newTempGears: [number, number][] = [...tempGears]
+        if (tempGears.length === 0) {
+          tempGears.push([pos![0], pos![1]])
+        } else {
+          let newGear = true
+          tempGears.forEach((tempGear) => {
+            console.log('examing tempGear', tempGear)
+            if (pos && tempGear[0] === pos[0] && tempGear[1] === pos[1]) {
+              console.log('This gear already detected near this word.')
+              newGear = false
+            } else if (pos) {
+              console.log(
+                'this gear not stored yet, setting newGear flag to true'
+              )
+              // newGear = true
+            }
+          })
+          if (newGear) {
+            console.log(
+              'done iterating through tempGears, determined to be a new one'
+            )
+            newTempGears.push([pos![0], pos![1]])
+          }
+          tempGears = newTempGears
+        }
+      }
+    }
+
+    console.log(tempGears)
     return false
+  }
+
+  const resetPartBulding = () => {
+    buildingNum = false
+
+    if (num.length > 0 && hasAdjacentGears) {
+      total += +num
+      parts.push(+num)
+      hasAdjacentGears = false
+      if (gears.length === 0) {
+        for (let tempGear of tempGears) {
+          gears.push(new GearInfo([tempGear[0], tempGear[1]], +num))
+        }
+      } else {
+        for (let tempGear of tempGears) {
+          let newGear = true
+          for (let gear of gears) {
+            if (gear.loc[0] === tempGear[0] && gear.loc[1] === tempGear[1]) {
+              gear.adj.push(+num)
+              newGear = false
+              break
+            }
+          }
+          if (newGear) {
+            gears.push(new GearInfo([tempGear[0], tempGear[1]], +num))
+          }
+        }
+      }
+
+      tempGears = []
+    }
+    num = ''
   }
 
   const lines = input.split(`\n`)
 
   let total: number = 0
+  let parts: number[] = []
 
+  const gears: GearInfo[] = []
+
+  //// Temp vars and flags
   let num: string = ''
   let buildingNum = false
-  let isPartNumber: boolean = false
+  let hasAdjacentGears: boolean = false
 
-  let parts: number[] = []
+  let tempGears: gearLoc[] = []
 
   lines.forEach((line: string, row: number) => {
     for (let col = 0; col < line.length; col++) {
@@ -573,40 +720,51 @@ export const totalPartNumbersAndGearRatios = (input: string) => {
         buildingNum = true
         num += char
         // console.log('Built number:', num)
-        isPartNumber = isPartNumber || isSymbolAdjacent(row, col)
+        // isPartNumber = isPartNumber || isSymbolAdjacent(row, col)
+        // isPartNumber = isPartNumber || isGearAdjacent(row, col)
+        // console.log(char, isGearAdjacent(row, col))
+        isGearAdjacent(row, col)
+        hasAdjacentGears = tempGears.length > 0
+        // console.log('---------------------')
         // console.log(char, isPartNumber)
         //// This clause fires if the current character is not a number.
         //// In such a case, if we had built a number and found any digit therein adjacent to a symbol, then we want to add that number to the total.
       } else {
-        // console.log(
-        //   `${char} is NOT a number. Our built number is currently ${num}, and isPartNumber is ${isPartNumber}`
-        // )
-        buildingNum = false
-
-        if (num.length > 0 && isPartNumber) {
-          total += +num
-          parts.push(+num)
-          isPartNumber = false
-        }
-        num = ''
+        resetPartBulding()
       }
       if (col === line.length - 1) {
-        buildingNum = false
-
-        if (num.length > 0 && isPartNumber) {
-          total += +num
-          parts.push(+num)
-          isPartNumber = false
-        }
-        num = ''
+        resetPartBulding()
       }
     }
   })
   //  for (let part of parts) {
   //    console.log(part)
   //  }
-  return total
+  // console.log(gears)
+  return gears
+    .filter((gear) => gear.adj.length === 2)
+    .reduce((acc, curr) => {
+      const gearRatio = curr.adj.reduce((acc, curr) => acc * curr)
+      return acc + gearRatio
+    }, 0)
 }
+
+// console.log(totalPartNumbersAndGearRatios(input), 546312)
+console.log(
+  totalPartNumbersAndGearRatios(`467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..`),
+  467835
+)
+
+console.log(totalPartNumbersAndGearRatios(input))
 
 console.log('--------END ANKI-----------')
 
