@@ -1,9 +1,3 @@
-/////////////////////////////////////
-////////// ANKI - JAVASCRIPT ////////
-/////////////////////////////////////
-
-console.log('--------ANKI-----------')
-
 // you walk, the Elf shows you a small bag and some cubes which are either red, green, or blue. Each time you play this game, he will hide a secret number of cubes of each color in the bag, and your goal is to figure out information about the number of cubes.
 
 // To get information, once a bag has been loaded with cubes, the Elf will reach into the bag, grab a handful of random cubes, show them to you, and then put them back in the bag. He'll do this a few times per game.
@@ -268,24 +262,3 @@ Game 100: 8 red, 4 blue, 4 green; 10 blue, 3 red, 4 green; 10 green, 4 red; 18 r
     { red: 12, green: 13, blue: 14 }
   )
 )
-
-console.log('--------END ANKI-----------')
-
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-
-//////////////////////////////////
-//////////// LEETCODE ////////////
-//////////////////////////////////
-
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-
-////////////////////////////////////////////////////////////////////////

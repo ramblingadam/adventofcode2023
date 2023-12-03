@@ -216,7 +216,7 @@ export const totalPartNumbers = (input: string) => {
 // console.log(totalPartNumbers(input))
 
 /*
-what if, instead, wheneve we came toa number we just checked the prev, same, and next line right thenandthere
+what if, instead, whenever we came to a number we just checked the prev, same, and next line right then and there
 
 
 
@@ -510,7 +510,9 @@ export const totalPartNumbers3 = (input: string) => {
 // console.log(totalPartNumbers3(input))
 // console.log(totalPartNumbers3(input2))
 
+///// PART 2
 /*
+
 as we search for adjacent symbols:
 if the symbol is a * for a particular numBuilding session,
 
