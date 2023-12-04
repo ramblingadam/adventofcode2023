@@ -1,11 +1,6 @@
-/////////////////////////////////////
-////////// ANKI - JAVASCRIPT ////////
-/////////////////////////////////////
-
-console.log('--------ANKI-----------')
-
 import { input } from './input'
 
+//// PART 1
 /*
 given a string that looks something lke this: 
 467..114..
@@ -70,8 +65,6 @@ nums = [
   {467: [0, [0, 1, 2]]}
 ]
 
-
-
 symbolsByRow = {
   1: [4]
   8: [3, 5]
@@ -84,206 +77,13 @@ nums = [
 ]
 */
 
-type numberData = {
-  num: number
-  pos: [number, number[]]
-}
-
-type numRowCols = [number, number[]] // [row, [col1, col2, col3, etc]]
-
-// export const isSymbol = (char: string): boolean => {
-//   const notSymbols = '1234567890.'
-//   return !notSymbols.includes(char)
-// }
-
-export const totalPartNumbers = (input: string) => {
-  const nums: numberData[] = []
-  const symbolsByRow: Record<string, number[]> = {}
-
-  const lines = input.split('\n')
-
-  lines.forEach((line, row) => {
-    for (let col = 0; col < line.length; col++) {
-      if (Number.isInteger(+line[col])) {
-        let potentialPartNumber: string = line[col]
-        let columns: number[] = [col]
-        for (let j = col + 1; j < line.length; col++, j++) {
-          if (Number.isInteger(+line[j])) {
-            potentialPartNumber += line[j]
-            columns.push(j)
-          } else {
-            nums.push({ num: +potentialPartNumber, pos: [row, columns] })
-            break
-          }
-        }
-      } else if (line[col] !== '.') {
-        const rowStr = String(row)
-        // console.log(row)
-        if (symbolsByRow[rowStr] !== undefined) symbolsByRow[rowStr].push(col)
-        else symbolsByRow[rowStr] = [col]
-      }
-    }
-  })
-  // console.log(nums)
-  console.log(symbolsByRow)
-
-  let result = 0
-  let hundreds: any[] = []
-
-  for (let num of nums) {
-    if (num.num === 100) hundreds.push(num)
-    const [row, cols] = num.pos
-    let isPartNumber = false
-    // console.log(num)
-
-    let nearbySymbolPositions: number[] = []
-    const symbolsOnPrevLine = symbolsByRow[row - 1]
-    if (symbolsOnPrevLine)
-      nearbySymbolPositions = nearbySymbolPositions.concat(symbolsOnPrevLine)
-    const symbolsOnSameLine = symbolsByRow[row]
-    if (symbolsOnSameLine)
-      nearbySymbolPositions = nearbySymbolPositions.concat(symbolsOnSameLine)
-    const symbolsOnNextLine = symbolsByRow[row + 1]
-    if (symbolsOnNextLine)
-      nearbySymbolPositions = nearbySymbolPositions.concat(symbolsOnNextLine)
-
-    // console.log(nearbySymbolPositions)
-    // console.log('-----')
-    for (let col of cols) {
-      if (
-        nearbySymbolPositions.includes(col - 1) ||
-        nearbySymbolPositions.includes(col) ||
-        nearbySymbolPositions.includes(col + 1)
-      ) {
-        result += +num.num
-        isPartNumber = true
-        break
-      }
-    }
-  }
-
-  console.log(hundreds)
-  return result
-}
-
-// console.log(
-//   totalPartNumbers(
-//     `467..114..
-// ...*......
-// ..35..633.
-// ......#...
-// 617*......
-// .....+.58.
-// ..592.....
-// ......755.
-// ...$.*....
-// .664.598..`
-//   ),
-//   4361
-// )
-
-/*
-
-467..114..
-...*......
-..35..633.
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598..
-
-*/
-
-// console.log(
-//   totalPartNumbers(
-//     `467..114..
-// ...*......
-// .755..633.
-// ......#...
-// 617*......
-// .....+.58.
-// ..592.....
-// .755^.755.
-// ...$.*....
-// .664.598..`
-//   ),
-//   5836
-// )
-
-// console.log(totalPartNumbers(input))
-
-/*
-what if, instead, whenever we came to a number we just checked the prev, same, and next line right then and there
-
-
-
-
-*/
-
-export const totalPartNumbers2 = (input: string) => {
-  const lines = input.split(`\n`)
-  const notSymbols = '123456789.'
-
-  let total: number = 0
-
-  lines.forEach((line: string, row: number) => {
-    console.log(line)
-    const prevLineExists = row > 0
-    const nextLineExists = row < lines.length - 1
-    for (let col = 0; col < line.length; col++) {
-      if (Number.isInteger(+line[col])) {
-        let isPartNumber = false
-        let num = line[col]
-        for (let j = col + 1; j < line.length; j++, col++) {
-          if (
-            !notSymbols.includes(lines[row][col - 1]) ||
-            !notSymbols.includes(lines[row][col + 1])
-          )
-            if (prevLineExists) {
-              if (
-                !notSymbols.includes(lines[row - 1][col - 1]) ||
-                !notSymbols.includes(lines[row - 1][col]) ||
-                !notSymbols.includes(lines[row - 1][col + 1])
-              )
-                isPartNumber = true
-            }
-          if (nextLineExists) {
-            if (
-              !notSymbols.includes(lines[row + 1][col - 1]) ||
-              !notSymbols.includes(lines[row + 1][col]) ||
-              !notSymbols.includes(lines[row + 1][col + 1])
-            )
-              isPartNumber = true
-          }
-          if (Number.isInteger(+line[j])) {
-            num += line[j]
-            if (isPartNumber) {
-              console.log('num:', num)
-              total += +num
-            }
-            break
-          }
-        }
-      }
-    }
-  })
-
-  return total
-}
+//// Note: Scrapped the above approach. New idea and ultimately successful solution to part 1:
 
 /*
 move through each line one column at a time.
 when we find a number, start bulding a number.
 as we bulid it, check all positions around to determine if there is a symbol adjacent. we want to do this with each digit we add to the number
-
 */
-
-// export const isSymbolAdjacent = (row:number, col:number):boolean => {
-//   if(lines[row - 1])
-// }
 
 export const isSymbol = (char: string): boolean => {
   if (char === undefined) return false
@@ -295,7 +95,7 @@ export const isNumber = (char: string): boolean => {
   return Number.isInteger(+char)
 }
 
-export const totalPartNumbers3 = (input: string) => {
+export const totalPartNumbers = (input: string) => {
   const isSymbolAdjacent = (row: number, col: number): boolean => {
     const prevRow = lines[row - 1]
     const currRow = lines[row]
@@ -322,7 +122,7 @@ export const totalPartNumbers3 = (input: string) => {
   }
 
   const lines = input.split(`\n`)
-  for (let line of lines) console.log(line)
+  // for (let line of lines) console.log(line)
 
   let total: number = 0
 
@@ -334,21 +134,20 @@ export const totalPartNumbers3 = (input: string) => {
 
   lines.forEach((line: string, row: number) => {
     for (let col = 0; col < line.length; col++) {
+      //// Grab current character.
       const char = line[col]
 
       if (isNumber(char)) {
-        // console.log(`${char} is a number. Adding it to built number.`)
+        //// Char is a number. Adding it to built number.
         buildingNum = true
         num += char
-        // console.log('Built number:', num)
+
+        //// If we've already determined that the current number being built is a part, keep it that way.
         isPartNumber = isPartNumber || isSymbolAdjacent(row, col)
-        // console.log(char, isPartNumber)
+
         //// This clause fires if the current character is not a number.
         //// In such a case, if we had built a number and found any digit therein adjacent to a symbol, then we want to add that number to the total.
       } else {
-        // console.log(
-        //   `${char} is NOT a number. Our built number is currently ${num}, and isPartNumber is ${isPartNumber}`
-        // )
         buildingNum = false
 
         if (num.length > 0 && isPartNumber) {
@@ -370,16 +169,17 @@ export const totalPartNumbers3 = (input: string) => {
       }
     }
   })
-  for (let part of parts) {
-    // console.log(part.toString().padStart(3, '0'))
-    console.log(part)
-  }
+
   return total
-  // return parts.reduce((acc, curr) => acc + curr)
 }
 
+//// VICTORY!!!
+console.log(totalPartNumbers(input), 546312)
+
+//// The hundred billion test cases I worked through trying to debug this damn thing.
+//// Scroll past all this junk to get to my Part 2 solution.
 // console.log(
-//   totalPartNumbers3(
+//   totalPartNumbers(
 //     `467..114..
 // ...*......
 // ..35..633.
@@ -394,7 +194,7 @@ export const totalPartNumbers3 = (input: string) => {
 //   4361
 // )
 // console.log(
-//   totalPartNumbers3(
+//   totalPartNumbers(
 //     `467..114..
 // ...*......
 // ..35..633.
@@ -416,7 +216,7 @@ export const totalPartNumbers3 = (input: string) => {
 */
 
 // console.log(
-//   totalPartNumbers3(`
+//   totalPartNumbers(`
 // ..............*.........243.................287................*............$....245............830.........793......#..........306..*......
 // 238.685.................*................#.........%........807.........28.947.................*.....705.....*....573...500*781...#..496....
 // ..................989..923.......713...539......917.................115..*.....-...........662.........-......413...........................`)
@@ -429,7 +229,7 @@ export const totalPartNumbers3 = (input: string) => {
 */
 
 // console.log(
-//   totalPartNumbers3(
+//   totalPartNumbers(
 //     `...........=......*..........886.*.........................442......*...........398........*.............%.............636...........%......
 // ............976.413...498..../...266........796....................87.....................969.881..&.....815...........*.....279....415.....
 // ......728*..............*..............129..........670...890.....................760...=.......@.832........227.....632.212*...............`
@@ -437,7 +237,7 @@ export const totalPartNumbers3 = (input: string) => {
 // )
 
 // console.log(
-//   totalPartNumbers3(`.........426.............985.........40..........207............................841..463................................633........17.384...
+//   totalPartNumbers(`.........426.............985.........40..........207............................841..463................................633........17.384...
 // 531&......+..........125....-..312..........#........895......998..945.....@......$.....-...33...................353.....*........*.........
 // ........................#......*...........21..727..*..../..-./.............545......80...................602......@..272.......743.........
 // ...........558.577..........486...186*925.....*....483.883.1....286...................................625..................#474.....491.....
@@ -504,13 +304,10 @@ export const totalPartNumbers3 = (input: string) => {
 // ]
 
 // for (let test of testCases) {
-//   console.log(totalPartNumbers3(test[0]), test[1])
+//   console.log(totalPartNumbers(test[0]), test[1])
 // }
 
-// console.log(totalPartNumbers3(input), 546312)
-// console.log(totalPartNumbers3(input2))
-
-///// PART 2
+///// ----------- PART 2 ------------------
 /*
 
 as we search for adjacent symbols while bulding a num:
@@ -527,79 +324,40 @@ reduce the result. bing bang boom
 
 */
 
-type gearLoc = [number, number]
+export const sumGearRatios = (input: string) => {
+  ////! ---------------- TYPES & CLASSES ----------------
+  //// Representing the row and column position of a gear.
+  type GearLoc = [number, number] // row, col
 
-// type gearInfo = {
-// loc: [number, number] // row, col
-// adj: number[] // list of adjacent parts
-// }
-
-class GearInfo {
-  loc: [number, number] // row, col
-  adj: number[] // list of adjacent parts
-  constructor(loc: [number, number], part: number) {
-    this.loc = loc
-    this.adj = [part]
-  }
-}
-
-export const isGear = (char: string) => {
-  return char === '*'
-}
-
-export const totalPartNumbersAndGearRatios = (input: string) => {
-  // const isSymbolAdjacent = (row: number, col: number): boolean => {
-  //   const prevRow = lines[row - 1]
-  //   const currRow = lines[row]
-  //   const nextRow = lines[row + 1]
-
-  //   if (isSymbol(currRow[col - 1]) || isSymbol(currRow[col + 1])) return true
-  //   if (prevRow) {
-  //     const aboveLeft = prevRow[col - 1]
-  //     const above = prevRow[col]
-  //     const aboveRight = prevRow[col + 1]
-  //     if (
-  //       isSymbol(prevRow[col - 1]) ||
-  //       isSymbol(prevRow[col]) ||
-  //       isSymbol(prevRow[col + 1])
-  //     )
-  //       return true
-  //   }
-  //   if (nextRow) {
-  //     if (
-  //       isSymbol(nextRow[col - 1]) ||
-  //       isSymbol(nextRow[col]) ||
-  //       isSymbol(nextRow[col + 1])
-  //     )
-  //       return true
-  //   }
-  //   return false
-  // }
-
-  // type surroundingCharInfo = {
-  //   char: string
-  //   pos: [number, number]
-  // }
-
-  class surroundingCharInfo {
-    char: string
-    pos: [number, number]
-    constructor(row: number, col: number) {
-      this.char = lines[row][col]
-      this.pos = [row, col]
+  //// Everything we need to know about a gear to solve the puzzle: its location, and an array of all adjacent parts.
+  class GearInfo {
+    loc: [number, number] // row, col
+    adj: number[] // list of adjacent parts
+    constructor(loc: [number, number], part: number) {
+      this.loc = loc
+      this.adj = [part]
     }
   }
 
-  //// If gear adjacent, returns [row, col] of gear. Otherwise, returns false.
-  const isGearAdjacent = (
-    row: number,
-    col: number
-  ): boolean | [number, number] => {
+  ////! ---------------- HELPER FUNCTIONS ----------------
+
+  //// This function locates all gears adjacent to the passed-in position, and updates the tempGear array with their locations.
+  const findAdjacentGears = (row: number, col: number): void => {
+    //// This class creates objects representing a character which is found to be adjacent to the current character we are looking at in the main loop. The character itself and its position are stored here.
+    class SurroundingCharInfo {
+      char: string
+      pos: [number, number]
+      constructor(row: number, col: number) {
+        this.char = lines[row][col]
+        this.pos = [row, col]
+      }
+    }
+    //// Grab references to previous and next rows.
     const prevRow = lines[row - 1]
-    const currRow = lines[row]
     const nextRow = lines[row + 1]
 
-    const surroundingChars: Record<string, null | surroundingCharInfo> = {
+    //// Initialize the object which will hold ALL characters surrounding the current character.
+    const surroundingChars: Record<string, null | SurroundingCharInfo> = {
       aboveLeft: null,
       above: null,
       aboveRight: null,
@@ -610,67 +368,57 @@ export const totalPartNumbersAndGearRatios = (input: string) => {
       belowRight: null,
     }
 
+    //// This section fills out the surroundingChars record.
     if (prevRow) {
-      surroundingChars['aboveLeft'] = new surroundingCharInfo(row - 1, col - 1)
-      surroundingChars['above'] = new surroundingCharInfo(row - 1, col)
-      surroundingChars['aboveRight'] = new surroundingCharInfo(row - 1, col + 1)
+      surroundingChars['aboveLeft'] = new SurroundingCharInfo(row - 1, col - 1)
+      surroundingChars['above'] = new SurroundingCharInfo(row - 1, col)
+      surroundingChars['aboveRight'] = new SurroundingCharInfo(row - 1, col + 1)
     }
 
-    surroundingChars['left'] = new surroundingCharInfo(row, col - 1)
-    surroundingChars['right'] = new surroundingCharInfo(row, col + 1)
+    surroundingChars['left'] = new SurroundingCharInfo(row, col - 1)
+    surroundingChars['right'] = new SurroundingCharInfo(row, col + 1)
 
     if (nextRow) {
-      surroundingChars['belowLeft'] = new surroundingCharInfo(row + 1, col - 1)
-      surroundingChars['below'] = new surroundingCharInfo(row + 1, col)
-      surroundingChars['belowRight'] = new surroundingCharInfo(row + 1, col + 1)
+      surroundingChars['belowLeft'] = new SurroundingCharInfo(row + 1, col - 1)
+      surroundingChars['below'] = new SurroundingCharInfo(row + 1, col)
+      surroundingChars['belowRight'] = new SurroundingCharInfo(row + 1, col + 1)
     }
 
-    console.log(surroundingChars)
-
+    //// Now we need to find all surrounding characters that are '*'s- henceforth referred to as GEARS).
     for (let surroundingChar in surroundingChars) {
+      //// Extract character and position array from surroundingChar object.
       const char = surroundingChars[surroundingChar]?.char
       const pos = surroundingChars[surroundingChar]?.pos
-      console.log('char:', char, 'pos:', pos)
+
+      //// If the character is a GEAR...
       if (char && char === '*') {
-        console.log('doing stuff with a gear')
-        let newTempGears: [number, number][] = [...tempGears]
+        //// Check if we have any gears stored in the tempGears array yet. If not, add this GEAR's position to it.
         if (tempGears.length === 0) {
           tempGears.push([pos![0], pos![1]])
+          //// If we have already stored at least one GEAR in tempGears, then we need to iterate through it to ensure we don't place a duplicate position.
         } else {
+          let newTempGears: [number, number][] = [...tempGears]
           let newGear = true
           tempGears.forEach((tempGear) => {
-            console.log('examing tempGear', tempGear)
             if (pos && tempGear[0] === pos[0] && tempGear[1] === pos[1]) {
-              console.log('This gear already detected near this word.')
+              //// This gear already exists in tempGears! Update newGear flag to prevent us from adding a duplicate at the end of the loop.
               newGear = false
-            } else if (pos) {
-              console.log(
-                'this gear not stored yet, setting newGear flag to true'
-              )
-              // newGear = true
             }
           })
           if (newGear) {
-            console.log(
-              'done iterating through tempGears, determined to be a new one'
-            )
+            //// If we got through the above loop and never found a matching gear, add the current gear's location to temp gears.
             newTempGears.push([pos![0], pos![1]])
           }
+          //// Update the main tempGears reference to reflect our changes.
           tempGears = newTempGears
         }
       }
     }
-
-    console.log(tempGears)
-    return false
   }
 
+  //// We run this function whenever we finish "building" a complete part (that is, a sequence of consecutive numbers).
   const resetPartBulding = () => {
-    buildingNum = false
-
     if (num.length > 0 && hasAdjacentGears) {
-      total += +num
-      parts.push(+num)
       hasAdjacentGears = false
       if (gears.length === 0) {
         for (let tempGear of tempGears) {
@@ -697,36 +445,27 @@ export const totalPartNumbersAndGearRatios = (input: string) => {
     num = ''
   }
 
+  //// Major vars.
   const lines = input.split(`\n`)
-
-  let total: number = 0
-  let parts: number[] = []
-
   const gears: GearInfo[] = []
 
   //// Temp vars and flags
   let num: string = ''
-  let buildingNum = false
   let hasAdjacentGears: boolean = false
 
-  let tempGears: gearLoc[] = []
+  //// tempGears will hold the locations of all Gears found adjacent to the current Part. Once we reach the end of any one part, any gears within tempGears are added to the primary gears array.
+  let tempGears: GearLoc[] = []
 
   lines.forEach((line: string, row: number) => {
     for (let col = 0; col < line.length; col++) {
       const char = line[col]
 
       if (isNumber(char)) {
-        // console.log(`${char} is a number. Adding it to built number.`)
-        buildingNum = true
         num += char
-        // console.log('Built number:', num)
-        // isPartNumber = isPartNumber || isSymbolAdjacent(row, col)
-        // isPartNumber = isPartNumber || isGearAdjacent(row, col)
-        // console.log(char, isGearAdjacent(row, col))
-        isGearAdjacent(row, col)
+
+        findAdjacentGears(row, col)
         hasAdjacentGears = tempGears.length > 0
-        // console.log('---------------------')
-        // console.log(char, isPartNumber)
+
         //// This clause fires if the current character is not a number.
         //// In such a case, if we had built a number and found any digit therein adjacent to a symbol, then we want to add that number to the total.
       } else {
@@ -737,10 +476,7 @@ export const totalPartNumbersAndGearRatios = (input: string) => {
       }
     }
   })
-  //  for (let part of parts) {
-  //    console.log(part)
-  //  }
-  // console.log(gears)
+
   return gears
     .filter((gear) => gear.adj.length === 2)
     .reduce((acc, curr) => {
@@ -749,9 +485,8 @@ export const totalPartNumbersAndGearRatios = (input: string) => {
     }, 0)
 }
 
-// console.log(totalPartNumbersAndGearRatios(input), 546312)
 console.log(
-  totalPartNumbersAndGearRatios(`467..114..
+  sumGearRatios(`467..114..
 ...*......
 ..35..633.
 ......#...
@@ -764,25 +499,5 @@ console.log(
   467835
 )
 
-console.log(totalPartNumbersAndGearRatios(input))
-
-console.log('--------END ANKI-----------')
-
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-
-//////////////////////////////////
-//////////// LEETCODE ////////////
-//////////////////////////////////
-
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-////////////////////
-
-////////////////////////////////////////////////////////////////////////
+//// VICTORY ~~~~~
+console.log(sumGearRatios(input), 87449461)
