@@ -40,7 +40,7 @@ export const totalWinsPerCard = (card: string) => {
     .filter((numStr) => numStr.length !== 0)
     .map((numStr) => +numStr)
 
-  //// Compare the arrays to countthe number of matches.
+  //// Compare the arrays to count the number of matches.
   let matches = 0
   winners.forEach((winner) => {
     if (owned.includes(winner)) matches += 1
@@ -49,6 +49,7 @@ export const totalWinsPerCard = (card: string) => {
 }
 
 export const countCards = (input: string): number => {
+  const startTime = Date.now()
   //// Build map of wins in each card
   const allCardWins: Record<string, number> = {}
 
@@ -56,14 +57,17 @@ export const countCards = (input: string): number => {
   cards.forEach((card: string) => {
     const cardNumber = card.replace('Card', '').split(':')[0].trim()
     const wins = totalWinsPerCard(card)
-    console.log(cardNumber, wins)
+    // console.log(cardNumber, wins)
     allCardWins[cardNumber] = wins
   })
 
+  //// Convert map into array so recursive fucntion can move through it iteratively
   const allCardWinsArray: [string, number][] = Object.entries(allCardWins)
 
+  //// Init result variable with the # of cards in our initial set
   let totalCards = cards.length
 
+  //// Rescursive function which counts the number of cards added by each card, then counts the cards created by those copies recursively until we reach a card with no winners
   const recurse = (cardNum: number, cardWins: number): number => {
     if (cardWins === 0) return 0
     let cardsToAdd = 0
@@ -73,10 +77,12 @@ export const countCards = (input: string): number => {
     return cardsToAdd
   }
 
+  //// Iterate through the cardWins map, calling our recursive function on each card therein in turn.
   for (let card in allCardWins) {
     totalCards += recurse(+card, allCardWins[card])
   }
 
+  console.log(Date.now() - startTime)
   return totalCards
 }
 
