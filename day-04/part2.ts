@@ -11,160 +11,76 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11`
 
 //// PLANNING
 /*
-The number of matches on a card is no longer directly relevant to your score.
-
-The number of matches on any particular card now means that you give yourself new copies of the next n cards, where n is the number of matches on the card.
- - Card 1, above, has 4 matches, you get a new copy of card 2, 3, 4, and 5.
- - Card 2, with 2 matches, nets you a new copy of cards 3 and 4
- - etc.
-
-RETURN: Now, your score is determined by the total number of cards you have at the end, after processing every single card- including your new copies.
-
-Memoization may be useful at some point here.
-
-One idea:
-Make a map of cards by number: 
+- map out how many cards each card adds
+- first make a map of number of wins in each card
 {
-  1: [winners, owned],
-  2: [winners, owned],
-  ...n: [winners, owned]
+  1: 4,
+  2: 2,
+  3: 2,
+  4: 1,
+  5: 0
 }
-
-Second idea:
-Not exactly efficient, but could use a for loop and continually splice in added cards, returning the length at the end.
-
-THIS ISN'T WORKING and i'm not sure why
-
+- for each card:
+-- add the total wins of the next x cards, where x is the number of wins
+-- then, for each of these x cards, also add the total wins of THEIR next x cards
 
 */
 
-export const totalCards = (input: string): number => {
-  //// Keep
-  const cards = input.split('\n')
-  let ourCards = cards.slice()
+//// Utility function to count wins per card
+export const totalWinsPerCard = (card: string) => {
+  const numbers = card.split(': ')[1]
+  const winners = numbers
+    .split(' | ')[0]
+    .split(' ')
+    .filter((numStr) => numStr.length !== 0)
+    .map((numStr) => +numStr)
+  const owned = numbers
+    .split(' | ')[1]
+    .split(' ')
+    .filter((numStr) => numStr.length !== 0)
+    .map((numStr) => +numStr)
 
-  for (let cardInd = 0; cardInd < ourCards.length; cardInd++) {
-    const numbers = ourCards[cardInd].split(': ')[1]
-    const winners = numbers
-      .split(' | ')[0]
-      .split(' ')
-      .filter((numStr) => numStr.length !== 0)
-      .map((numStr) => +numStr)
-    const owned = numbers
-      .split(' | ')[1]
-      .split(' ')
-      .filter((numStr) => numStr.length !== 0)
-      .map((numStr) => +numStr)
-
-    // console.log(winners)
-    // console.log(owned)
-
-    //// Compare the arrays to count the number of matches.
-    let matches = 0
-    winners.forEach((winner) => {
-      if (owned.includes(winner)) matches += 1
-    })
-
-    console.log('current card at cardind:', ourCards[cardInd])
-    console.log('spot to insert:', cardInd + 1)
-
-    // ourCards.splice(
-    //   cardInd + 1,
-    //   0,
-    //   ...cards.slice(cardInd + 1, cardInd + 1 + matches)
-    // )
-    ourCards = ourCards.concat(
-      ...cards.slice(cardInd + 1, cardInd + 1 + matches)
-    )
-    console.log('matches:', matches)
-    console.log(
-      'cards to insert:',
-      cards.slice(cardInd + 1, cardInd + 1 + matches)
-    )
-    console.log('ourCards after splice:', ourCards)
-    console.log('-------------------------')
-  }
-  // ourCards.splice(1, 0, cards[1])
-  console.log(ourCards)
-  const cardCounter = ourCards.reduce(
-    (acc: Record<string, number>, card: string) => {
-      const cardNum = card.split(': ')[0]
-      if (acc[cardNum] === undefined) acc[cardNum] = 1
-      else acc[cardNum] += 1
-      return acc
-    },
-    {}
-  )
-
-  console.log(cardCounter)
-
-  return ourCards.length
+  //// Compare the arrays to countthe number of matches.
+  let matches = 0
+  winners.forEach((winner) => {
+    if (owned.includes(winner)) matches += 1
+  })
+  return matches
 }
 
-// export const totalCards = (input: string): number => {
-//   //// Keep
-//   const cards = input.split('\n')
-//   let ourCards = cards.slice()
+export const countCards = (input: string): number => {
+  //// Build map of wins in each card
+  const allCardWins: Record<string, number> = {}
 
-//   for (let cardInd = 0; cardInd < ourCards.length; cardInd++) {
-//     const numbers = ourCards[cardInd].split(': ')[1]
-//     const winners = numbers
-//       .split(' | ')[0]
-//       .split(' ')
-//       .filter((numStr) => numStr.length !== 0)
-//       .map((numStr) => +numStr)
-//     const owned = numbers
-//       .split(' | ')[1]
-//       .split(' ')
-//       .filter((numStr) => numStr.length !== 0)
-//       .map((numStr) => +numStr)
+  const cards = input.split('\n')
+  cards.forEach((card: string) => {
+    const cardNumber = card.replace('Card', '').split(':')[0].trim()
+    const wins = totalWinsPerCard(card)
+    console.log(cardNumber, wins)
+    allCardWins[cardNumber] = wins
+  })
 
-//     // console.log(winners)
-//     // console.log(owned)
+  const allCardWinsArray: [string, number][] = Object.entries(allCardWins)
 
-//     //// Compare the arrays to count the number of matches.
-//     let matches = 0
-//     winners.forEach((winner) => {
-//       if (owned.includes(winner)) matches += 1
-//     })
+  let totalCards = cards.length
 
-//     console.log('spot to insert:', cardInd)
-//     console.log('card at cardind:', ourCards[cardInd])
+  const recurse = (cardNum: number, cardWins: number): number => {
+    if (cardWins === 0) return 0
+    let cardsToAdd = 0
+    for (let i = cardNum; i < cardNum + cardWins; i++) {
+      cardsToAdd += 1 + recurse(+allCardWinsArray[i][0], allCardWinsArray[i][1])
+    }
+    return cardsToAdd
+  }
 
-//     ourCards.splice(
-//       cardInd + 1,
-//       0,
-//       ...cards.slice(cardInd + 1, cardInd + 1 + matches)
-//     )
-//     console.log('matches:', matches)
-//     console.log(
-//       'cards to insert:',
-//       cards.slice(cardInd + 1, cardInd + 1 + matches)
-//     )
-//     console.log('ourCards after splice:', ourCards)
-//     console.log('-------------------------')
+  for (let card in allCardWins) {
+    totalCards += recurse(+card, allCardWins[card])
+  }
 
-//     // ourCards = ourCards.concat(
-//     //   ...cards.slice(cardInd + 1, cardInd + 1 + matches)
-//     // )
-//   }
-//   // ourCards.splice(1, 0, cards[1])
-//   console.log(ourCards)
-//   const cardCounter = ourCards.reduce(
-//     (acc: Record<string, number>, card: string) => {
-//       const cardNum = card.split(': ')[0]
-//       if (acc[cardNum] === undefined) acc[cardNum] = 1
-//       else acc[cardNum] += 1
-//       return acc
-//     },
-//     {}
-//   )
+  return totalCards
+}
 
-//   console.log(cardCounter)
+// console.log(countCards(sampleInput))
 
-//   return ourCards.length + cards
-// }
-
-console.log(totalCards(sampleInput), 30)
-
-// console.log(totalCards(input))
+//// VICTORY
+console.log(countCards(input))
