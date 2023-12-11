@@ -16,6 +16,15 @@ Jokers individual strength is now the lowest.
 
 we'll need to refactor our parseInput handType calculations to include the following cases:
 
+TESTS:
+QAJJJ > QAAAA = four of a kind
+QQAAJ > QQAAA = full house
+QQQJJ > QQQQQ = five of a kind
+QQJJJ > QQQQQ = five of a kind
+QQJ12 > QQQ12 = 3 of a kind
+1233J > 12333 = 3 of a kind
+1234J > 12344 = 1 pair
+
 HAND UPGRADE SCENARIOS:
 5 of a kind:
 - 4 of a card and 1 joker
@@ -32,8 +41,9 @@ QAJJJ > QAAAA = four of a kind
 QQAAJ > QQAAA = full house
 QQQJJ > QQQQQ = five of a kind
 QQJJJ > QQQQQ = five of a kind
-QQAJJ > 
+QQAJJ > QQAQQ = four of a kind
 
+QQ
 full house:
 - 2 pairs and 1 joker
 
@@ -122,10 +132,10 @@ export const parseInput = (input: string) => {
     let pairs = 0
     let triples = 0
     let jokers = 0 | cardCounts['J']
-    console.log(jokers, 'jokers')
 
     for (let card in cardCounts) {
       if (card === 'J') {
+        if (jokers === 5) handType = '5 of a kind'
         continue
       }
       const cardCount = cardCounts[card]
@@ -175,22 +185,23 @@ export const parseInput = (input: string) => {
 
 // console.log(parseInput(sampleInput))
 
-let tests = [
-  // ['QAJJJ 69', 'four of a kind'],
-  // ['QQAAJ 69', 'full house'],
-  // ['QQQJJ 69', 'five of a kind'],
-  // ['QQJJJ 69', 'five of a kind'],
-  // ['QQ12J 69', 'three of a kind'],
-  ['123JJ 69', 'three of a kind'],
-  ['1234J 69', '1 pair'],
-  ['1233J 69', 'three of a kind'],
-  ['1214J 69', 'three of a kind'],
-  ['J1234 69', '1 pair'],
-]
+// let tests = [
+//   ['QAJJJ 69', 'four of a kind'],
+//   ['QQAAJ 69', 'full house'],
+//   ['QQQJJ 69', 'five of a kind'],
+//   ['QQJJJ 69', 'five of a kind'],
+//   ['QQ12J 69', 'three of a kind'],
+//   ['123JJ 69', 'three of a kind'],
+//   ['1234J 69', '1 pair'],
+//   ['1233J 69', 'three of a kind'],
+//   ['1214J 69', 'three of a kind'],
+//   ['J1234 69', '1 pair'],
+//   ['QQAJJ 69', '4 of a kind'],
+// ]
 
-for (let test of tests) {
-  console.log(parseInput(test[0]), test[1])
-}
+// for (let test of tests) {
+//   console.log(parseInput(test[0]), test[1])
+// }
 
 export const sortHandsByRank = (allHands: Hand[]) => {
   return allHands.sort((a, b) => {
@@ -222,4 +233,5 @@ export const calculateTotalWinnings = (input: string): number => {
 
 // console.log(calculateTotalWinnings(sampleInput))
 
-// console.log(calculateTotalWinnings(input))
+//// VICTORY
+console.log(calculateTotalWinnings(input))
