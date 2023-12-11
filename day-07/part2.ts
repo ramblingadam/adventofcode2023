@@ -12,6 +12,51 @@ QQQJA 483`
 /*
 New wrench: Jokers are no included, and pretend to be whatever card is needed to make the current hand the best hand possible given the other cards in  that hand.
 
+Jokers individual strength is now the lowest.
+
+we'll need to refactor our parseInput handType calculations to include the following cases:
+
+HAND UPGRADE SCENARIOS:
+5 of a kind:
+- 4 of a card and 1 joker
+- one triple and 2 jokers
+- one pair and 3 jokers
+- 1 of a card and 4 jokers
+
+4 of a kind:
+- one triple and 1 jokers
+- one pair and 2 jokers
+- 1 of a card and 3 jokers
+
+QAJJJ > QAAAA = four of a kind
+QQAAJ > QQAAA = full house
+QQQJJ > QQQQQ = five of a kind
+QQJJJ > QQQQQ = five of a kind
+QQAJJ > 
+
+full house:
+- 2 pairs and 1 joker
+
+QQJ12 > QQQ12 = 3 of a kind
+123JJ > 12333 = 3 of a kind
+3 of a kind:
+- 1 pair and 1 joker
+- 0 pairs and 2 jokers
+
+1234J > 1 pair
+1233J > 3 of a kind
+
+2 pair:
+- None. Any cases where a joker could upgrade a hand to a two pair, it could instead upgrade the hand to 3 of a kind or better.
+
+1234J > 12344
+1 pair:
+- no pairs, no triples, 1 joker
+
+high card:
+- No new rules involving joker. A single joker will always at minimum upgrade a hand to a 1 pair.
+
+
 
 */
 
@@ -76,31 +121,45 @@ export const parseInput = (input: string) => {
 
     let pairs = 0
     let triples = 0
-    let highCardStrength = 0
+    let jokers = 0 | cardCounts['J']
+    console.log(jokers, 'jokers')
 
     for (let card in cardCounts) {
-      if (cardCounts[card] === 5) {
+      if (card === 'J') {
+        continue
+      }
+      const cardCount = cardCounts[card]
+      if (cardCount + jokers === 5) {
         handType = '5 of a kind'
         break
       }
-      if (cardCounts[card] === 4) {
+      if (cardCount + jokers === 4) {
         handType = '4 of a kind'
         break
       }
-      if (cardCounts[card] === 3) {
+      if (cardCount === 3) {
         triples += 1
       }
-      if (cardCounts[card] === 2) {
+      if (cardCount === 2) {
         pairs += 1
       }
-      highCardStrength = Math.max(highCardStrength, CARD_STRENGTHS[card])
     }
     if (!handType) {
-      if (triples === 1 && pairs === 1) handType = 'full house'
-      else if (triples === 1) handType = '3 of a kind'
-      else if (pairs === 2) handType = '2 pair'
-      else if (pairs === 1) handType = '1 pair'
-      else handType = 'high card'
+      if (triples === 1 && pairs === 1) {
+        handType = 'full house'
+      } else if (triples === 1) {
+        handType = '3 of a kind'
+      } else if (pairs === 2) {
+        if (jokers === 1) handType = 'full house'
+        else handType = '2 pair'
+      } else if (pairs === 1) {
+        if (jokers === 1) handType = '3 of a kind'
+        else handType = '1 pair'
+      } else {
+        if (jokers === 2) handType = '3 of a kind'
+        else if (jokers === 1) handType = '1 pair'
+        else handType = 'high card'
+      }
     }
 
     const handInfo: Hand = {
@@ -114,7 +173,24 @@ export const parseInput = (input: string) => {
   return allHands
 }
 
-console.log(parseInput(sampleInput))
+// console.log(parseInput(sampleInput))
+
+let tests = [
+  // ['QAJJJ 69', 'four of a kind'],
+  // ['QQAAJ 69', 'full house'],
+  // ['QQQJJ 69', 'five of a kind'],
+  // ['QQJJJ 69', 'five of a kind'],
+  // ['QQ12J 69', 'three of a kind'],
+  ['123JJ 69', 'three of a kind'],
+  ['1234J 69', '1 pair'],
+  ['1233J 69', 'three of a kind'],
+  ['1214J 69', 'three of a kind'],
+  ['J1234 69', '1 pair'],
+]
+
+for (let test of tests) {
+  console.log(parseInput(test[0]), test[1])
+}
 
 export const sortHandsByRank = (allHands: Hand[]) => {
   return allHands.sort((a, b) => {
@@ -134,7 +210,7 @@ export const sortHandsByRank = (allHands: Hand[]) => {
   })
 }
 
-console.log(sortHandsByRank(parseInput(sampleInput)))
+// console.log(sortHandsByRank(parseInput(sampleInput)))
 
 export const calculateTotalWinnings = (input: string): number => {
   const allHands = parseInput(input)
@@ -146,5 +222,4 @@ export const calculateTotalWinnings = (input: string): number => {
 
 // console.log(calculateTotalWinnings(sampleInput))
 
-//// VICTORY!
-console.log(calculateTotalWinnings(input))
+// console.log(calculateTotalWinnings(input))
