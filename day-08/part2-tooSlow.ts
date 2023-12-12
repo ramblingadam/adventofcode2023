@@ -32,20 +32,17 @@ allPaths = {
 }
 
 
- ^TOO SLOW OH NO
-what if we... counted the number of steps to reach a Z from each entry point.
+TOO SLOW OH NO
+what if we... counted the number of steps to reach a Z from each
 
-find the least common multiple among the stepsToZ
 */
 
 class Node {
   left: string
   right: string
-  stepsToZ: number | null
   constructor(left: string, right: string) {
     this.left = left
     this.right = right
-    this.stepsToZ = null
   }
 }
 
@@ -77,77 +74,61 @@ export const parseInput = (input: string) => {
     }
   })
 
-  // console.log(pathsSize)
+  console.log(pathsSize)
 
   return { directions, map, paths }
 }
 
 // console.log(parseInput(sampleInput))
 // console.log(parseInput(input))
-
-export const calculateStepsToZ = (
-  directions: string,
-  map: Record<string, Node>,
-  node: string
-) => {
-  let stepsToZ = 0
-  let directionsIndex = 0
-  let currentNode = node
-  while (!currentNode.endsWith('Z')) {
-    stepsToZ++
-    const direction = directions[directionsIndex]
-
-    switch (direction) {
-      case 'L':
-        currentNode = map[currentNode].left
-        break
-      case 'R':
-        currentNode = map[currentNode].right
-        break
-      default:
-        console.warn(`We shouldn't be here.`)
-        break
-    }
-    if (directionsIndex === directions.length - 1) {
-      directionsIndex = 0
-    } else directionsIndex++
-  }
-
-  return stepsToZ
-}
-
-function gcd(a: number, b: number): number {
-  return b === 0 ? a : gcd(b, a % b)
-}
-
-function lcm(a: number, b: number): number {
-  return Math.abs(a * b) / gcd(a, b)
-}
-
-function lcmOfArray(numbers: number[]): number {
-  if (numbers.length < 2) {
-    throw new Error('At least two numbers are required to find the LCM.')
-  }
-
-  let result = numbers[0]
-  for (let i = 1; i < numbers.length; i++) {
-    result = lcm(result, numbers[i])
-  }
-
-  return result
-}
+parseInput(sampleInput)
+parseInput(input)
 
 export const traverseMap = (input: string) => {
   const start = Date.now()
   const { directions, map, paths } = parseInput(input)
 
-  const stepsToZArr: number[] = []
+  let totalSteps = 0
 
-  for (let path in paths) {
-    stepsToZArr.push(calculateStepsToZ(directions, map, path))
-  }
+  let directionsIndex = 0
 
-  console.log(stepsToZArr)
+  let finished = false
+
+  do {
+    finished = true
+
+    totalSteps++
+
+    const direction = directions[directionsIndex]
+    // console.log('step', totalSteps)
+    switch (direction) {
+      case 'L':
+        for (let path in paths) {
+          paths[path] = map[paths[path]].left
+          // console.log('Went left, new node is', paths[path])
+          // console.log(!paths[path].endsWith('Z'))
+          if (!paths[path].endsWith('Z')) finished = false
+        }
+        break
+      case 'R':
+        for (let path in paths) {
+          paths[path] = map[paths[path]].right
+          // console.log('Went right, new node is', paths[path])
+          // console.log(!paths[path].endsWith('Z'))
+          if (!paths[path].endsWith('Z')) finished = false
+        }
+        break
+      default:
+        console.warn(`We shouldn't be here.`)
+        break
+    }
+
+    if (directionsIndex === directions.length - 1) {
+      directionsIndex = 0
+    } else directionsIndex++
+  } while (finished === false)
+
+  console.log(paths)
 
   const totalMs = (start - Date.now()) / 1000
   console.log(
@@ -155,11 +136,8 @@ export const traverseMap = (input: string) => {
       totalMs / 1000 / 60
     } minutes`
   )
-
-  return lcmOfArray(stepsToZArr)
+  return totalSteps
 }
 
-console.log(traverseMap(sampleInput))
-
-//// VICTORY
+//// TOO SLOW.
 console.log(traverseMap(input))
