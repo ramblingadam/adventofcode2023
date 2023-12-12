@@ -149,7 +149,7 @@ export const traverseMap = (input: string) => {
 
   console.log(stepsToZArr)
 
-  const totalMs = (start - Date.now()) / 1000
+  const totalMs = Date.now() - start
   console.log(
     `total runtime:\n${totalMs} milliseconds\n${totalMs / 1000} seconds\n${
       totalMs / 1000 / 60
